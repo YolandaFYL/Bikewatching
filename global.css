@@ -36,6 +36,14 @@ body {
 #map svg circle {
   pointer-events: auto;
   cursor: pointer;
+  --color-departures: steelblue;
+  --color-arrivals: darkorange;
+  --color: color-mix(
+    in oklch,
+    var(--color-departures) calc(100% * var(--departure-ratio)),
+    var(--color-arrivals)
+  );
+  fill: var(--color);
 }
 
 header {

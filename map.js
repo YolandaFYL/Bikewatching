@@ -55,6 +55,8 @@ function computeStationTraffic(stations, timeFilter = -1) {
   });
 }
 
+const stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
+
 map.on('load', async () => {
   map.addSource('boston_route', {
     type: 'geojson',
@@ -103,7 +105,7 @@ map.on('load', async () => {
     .enter()
     .append('circle')
     .attr('r', d => radiusScale(d.totalTraffic))
-    .attr('fill', 'steelblue')
+    .style('--departure-ratio', d => stationFlow(d.departures / d.totalTraffic))
     .attr('stroke', 'white')
     .attr('stroke-width', 1)
     .attr('opacity', 0.8)
@@ -113,7 +115,8 @@ map.on('load', async () => {
     });
 
   function updatePositions() {
-    circles.attr('cx', d => map.project([+d.lon, +d.lat]).x).attr('cy', d => map.project([+d.lon, +d.lat]).y);
+    circles.attr('cx', d => map.project([+d.lon, +d.lat]).x)
+           .attr('cy', d => map.project([+d.lon, +d.lat]).y);
   }
 
   updatePositions();
@@ -134,7 +137,9 @@ map.on('load', async () => {
     circles = svg.selectAll('circle')
       .data(filteredStations, d => d.short_name)
       .join('circle')
-      .attr('r', d => radiusScale(d.totalTraffic));
+      .attr('r', d => radiusScale(d.totalTraffic))
+      .style('--departure-ratio', d => stationFlow(d.departures / d.totalTraffic));
+
     updatePositions();
   }
 
