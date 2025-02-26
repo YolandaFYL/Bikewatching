@@ -23,6 +23,7 @@ body {
   height: 100%;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
+  position: relative;
 }
 
 #map svg {
@@ -73,4 +74,47 @@ label {
 #any-time {
   color: gray;
   font-style: italic;
+}
+
+.legend {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5em;
+  margin-block: 1em;
+  padding: 0.75em 1.5em;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+  width: 100%;
+  max-width: 60em;
+}
+
+.legend::before {
+  content: "LEGEND:";
+  font-weight: bold;
+  color: gray;
+}
+
+.legend > div {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.legend > div::before {
+  content: "";
+  width: 1.25em;
+  height: 1.25em;
+  border-radius: 50%;
+  --color-departures: steelblue;
+  --color-arrivals: darkorange;
+  --color: color-mix(
+    in oklch,
+    var(--color-departures) calc(100% * var(--departure-ratio)),
+    var(--color-arrivals)
+  );
+  background-color: var(--color);
+  border: 1px solid #ccc;
 }
