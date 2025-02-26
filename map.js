@@ -14,9 +14,9 @@ const map = new mapboxgl.Map({
 });
 
 const bikeLaneStyle = {
-    'line-color': '#32D400', 
+    'line-color': 'green', 
     'line-width': 5, 
-    'line-opacity': 0.6
+    'line-opacity': 0.5
 };
 
 map.on('load', async () => {
@@ -42,48 +42,73 @@ map.on('load', async () => {
       paint: bikeLaneStyle
     });
 
-    let jsonData;
-    try {
-        const jsonurl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
+    const jsonData = await d3.json('https://dsc106.com/labs/lab07/data/bluebikes-stations.json');
+    console.log('Loaded JSON Data:', jsonData);
 
-        const jsonData = await d3.json(jsonurl);
-        console.log('Loaded JSON Data:', jsonData);
+    let stations = jsonData.data.stations;
+    console.log('Stations Array:', stations);
 
-        let stations = jsonData.data.stations;
-        console.log('Stations Array:', stations);
+    const svg = d3.select('#map').select('svg');
 
-        const svg = d3.select('#map').select('svg');
-
-        function getCoords(station) {
-            const point = new mapboxgl.LngLat(+station.lon, +station.lat);
-            const { x, y } = map.project(point);
-            return { cx: x, cy: y };
-        }
-        
-        const circles = svg.selectAll('circle')
-          .data(stations)
-          .enter()
-          .append('circle')
-          .attr('r', 5) 
-          .attr('fill', 'steelblue')
-          .attr('stroke', 'white') 
-          .attr('stroke-width', 1) 
-          .attr('opacity', 0.8);
-        
-        function updatePositions() {
-            circles
-              .attr('cx', d => getCoords(d).cx) 
-              .attr('cy', d => getCoords(d).cy);
-        }
-        
-        updatePositions();
-        
-        map.on('move', updatePositions); 
-        map.on('zoom', updatePositions); 
-        map.on('resize', updatePositions); 
-        map.on('moveend', updatePositions);
-    } catch (error) {
-        console.error('Error loading JSON:', error);
+    function getCoords(station) {
+        const point = new mapboxgl.LngLat(+station.lon, +station.lat);
+        const { x, y } = map.project(point);
+        return { cx: x, cy: y };
     }
+
+    const trips = await d3.csv('https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv');
+    console.log('Loaded Trips Data:', trips);
+
+    const departures = d3.rollup(
+        trips,
+        (v) => v.length,
+        (d) => d.start_station_id
+    );
+    const arrivals = d3.rollup(
+        trips,
+        (v) => v.length,
+        (d) => d.end_station_id
+    );
+    stations = stations.map((station) => {
+        const id = station.short_name;
+        station.arrivals = arrivals.get(id) ?? 0;
+        station.departures = departures.get(id) ?? 0;
+        station.totalTraffic = station.arrivals + station.departures;
+        return station;
+    });
+
+    const radiusScale = d3
+    .scaleSqrt()
+    .domain([0, d3.max(stations, (d) => d.totalTraffic)])
+    .range([0, 25]);
+
+    const circles = svg.selectAll('circle')
+    .data(stations)
+    .enter()
+    .append('circle')
+    .attr('r', d => radiusScale(d.totalTraffic)) 
+    .attr('fill', 'steelblue')
+    .attr('stroke', 'white') 
+    .attr('stroke-width', 1) 
+    .attr('opacity', 0.8)
+    .style('pointer-events', 'auto')
+    .each(function (d) {
+        d3.select(this)
+          .append('title')
+          .text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
+    });
+
+    function updatePositions() {
+      circles
+        .attr('cx', d => getCoords(d).cx) 
+        .attr('cy', d => getCoords(d).cy);
+    }
+  
+    updatePositions();
+  
+    map.on('move', updatePositions); 
+    map.on('zoom', updatePositions); 
+    map.on('resize', updatePositions); 
+    map.on('moveend', updatePositions);
 });
 
