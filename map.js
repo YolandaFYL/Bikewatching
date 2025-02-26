@@ -16,15 +16,9 @@ const map = new mapboxgl.Map({
 const bikeLaneStyle = {
     'line-color': '#32D400', 
     'line-width': 5, 
-    'line-opacity': 0.7
+    'line-opacity': 0.6
 };
 
-function getCoords(station) {
-    const point = new mapboxgl.LngLat(+station.Long, +station.Lat);
-    const { x, y } = map.project(point);
-    return { cx: x, cy: y };
-}
-  
 map.on('load', async () => {
     map.addSource('boston_route', {
       type: 'geojson',
@@ -51,13 +45,45 @@ map.on('load', async () => {
     let jsonData;
     try {
         const jsonurl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
-        
+
         const jsonData = await d3.json(jsonurl);
         console.log('Loaded JSON Data:', jsonData);
 
         let stations = jsonData.data.stations;
         console.log('Stations Array:', stations);
+
+        const svg = d3.select('#map').select('svg');
+
+        function getCoords(station) {
+            const point = new mapboxgl.LngLat(+station.lon, +station.lat);
+            const { x, y } = map.project(point);
+            return { cx: x, cy: y };
+        }
+        
+        const circles = svg.selectAll('circle')
+          .data(stations)
+          .enter()
+          .append('circle')
+          .attr('r', 5) 
+          .attr('fill', 'steelblue')
+          .attr('stroke', 'white') 
+          .attr('stroke-width', 1) 
+          .attr('opacity', 0.8);
+        
+        function updatePositions() {
+            circles
+              .attr('cx', d => getCoords(d).cx) 
+              .attr('cy', d => getCoords(d).cy);
+        }
+        
+        updatePositions();
+        
+        map.on('move', updatePositions); 
+        map.on('zoom', updatePositions); 
+        map.on('resize', updatePositions); 
+        map.on('moveend', updatePositions);
     } catch (error) {
         console.error('Error loading JSON:', error);
     }
 });
+
