@@ -1,10 +1,68 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font: 100%/1.5 system-ui, sans-serif;
+  box-sizing: border-box;
+}
+
 body {
-    font: 100%/1.5 system-ui, sans-serif;
-    display: flex;
-    flex-flow: column;
-    max-width: 80em;
-    min-height: 100vh;
-    box-sizing: border-box;
-    margin: auto;
-    padding: 1em;
-  }
+  flex-flow: column;
+  max-width: 80em;
+  min-height: 100vh;
+  margin: auto;
+  padding: 1em;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+#map svg {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+#map svg circle {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+header {
+  display: flex;
+  gap: 1em;
+  align-items: baseline;
+  width: 100%;
+}
+
+label {
+  margin-left: auto;
+  text-align: right;
+  width: 50%;
+}
+
+#time-slider {
+  width: 80%;
+}
+
+#selected-time,
+#any-time {
+  text-align: right;
+  display: block;
+  margin-top: 0.25em;
+}
+
+#any-time {
+  color: gray;
+  font-style: italic;
+}

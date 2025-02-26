@@ -24,6 +24,13 @@ function getCoords(station) {
   return { cx: x, cy: y };
 }
 
+
+let timeFilter = -1;
+function formatTime(minutes) {
+  const date = new Date(0, 0, 0, 0, minutes); // Set hours & minutes
+  return date.toLocaleString('en-US', { timeStyle: 'short' });
+}
+
 map.on('load', async () => {
   map.addSource('boston_route', {
     type: 'geojson',
@@ -97,4 +104,23 @@ map.on('load', async () => {
   map.on('zoom', updatePositions);
   map.on('resize', updatePositions);
   map.on('moveend', updatePositions);
+
+  const timeSlider = document.getElementById('time-slider');
+  const selectedTime = document.getElementById('selected-time');
+  const anyTimeLabel = document.getElementById('any-time');
+
+  function updateTimeDisplay() {
+    timeFilter = Number(timeSlider.value); 
+
+    if (timeFilter === -1) {
+      selectedTime.textContent = '';
+      anyTimeLabel.style.display = 'block';
+    } else {
+      selectedTime.textContent = formatTime(timeFilter); 
+      anyTimeLabel.style.display = 'none'; 
+    }
+  }
+
+  timeSlider.addEventListener('input', updateTimeDisplay);
+  updateTimeDisplay();
 });
